@@ -10,7 +10,7 @@ Este projeto é um sistema de gerenciamento de pedidos para um fast-food, desenv
 ## 🏛️ Arquitetura
 ![Arquitetura Fase 2 drawio](https://github.com/user-attachments/assets/a52077b8-b5a0-4020-a4e8-a4a858503566)
 
-### Desenho da Arquitetura.
+### Desenho da Arquitetura
 A arquitetura do sistema foi desenhada para garantir escalabilidade e alta disponibilidade, utilizando os componentes do Kubernetes para gerenciar a aplicação. Abaixo estão os principais componentes da arquitetura:
 
 - Pods: Rodam a aplicação e são gerenciados pelo Kubernetes.
