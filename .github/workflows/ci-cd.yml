@@ -1,0 +1,25 @@
+name: Deploy Order Service
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build -t fast-food-order-service .
+
+      - name: Push to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/order-service-deployment.yaml
