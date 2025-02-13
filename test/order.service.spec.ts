@@ -204,4 +204,23 @@ describe('OrderService', () => {
     await expect(service.getOrderById('invalid-order')).rejects.toThrow(NotFoundException);
   });
 
+  it('should throw BadRequestException if the order has no associated client', async () => {
+    const orderId = 'order-123';
+    const now = new Date();
+    const orderWithoutClient = {
+      id: orderId,
+      client: null,
+      product: [{ id: 'prod-uuid1' }] as Product[],
+      totalAmount: 100,
+      status: OrderStatus.RECEIVED,
+      createdAt: now,
+      updatedAt: now,
+    } as Order;
+
+    jest.spyOn(orderRepository, 'findOne').mockResolvedValue(orderWithoutClient);
+    const loggerSpy = jest.spyOn(service['logger'], 'error');
+
+    await expect(service.getOrderById(orderId)).rejects.toThrow(BadRequestException);
+    expect(loggerSpy).toHaveBeenCalledWith(`Order ${orderId} does not have an associated client`);
+  });
 });
