@@ -172,7 +172,7 @@ describe('OrderService', () => {
 
   it('should log error and throw BadRequestException if order creation fails', async () => {
     jest.spyOn(clientRepository, 'findOne').mockResolvedValue({ id: 'client-123' } as Client);
-    jest.spyOn(productRepository, 'findByIds').mockResolvedValue([{ id: 'product-123' }] as Product[]);
+    jest.spyOn(productRepository, 'find').mockResolvedValue([{ id: 'product-123' }] as Product[]);
     jest.spyOn(orderRepository, 'save').mockRejectedValue(new Error('DB Error'));
     const loggerSpy = jest.spyOn(service['logger'], 'error');
 
