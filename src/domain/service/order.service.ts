@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { Order, OrderStatus } from '../entities/order.entity';
-import { Client } from '../entities/client.entity';
-import { Product } from '../entities/product.entity';
-import { OrderDto } from '../../application/dto/order.dto';
+import { OrderDto } from '@application/dto/order.dto';
+import { Order, OrderStatus } from '@domain/entities/order.entity';
+import { Client } from '@domain/entities/client.entity';
+import { Product } from '@domain/entities/product.entity';
 
 @Injectable()
 export class OrderService {
@@ -96,8 +96,12 @@ export class OrderService {
       if (!order) {
         throw new NotFoundException('Order not found');
       }
+
       return new OrderDto(order);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException('Failed to get order');
     }
   }

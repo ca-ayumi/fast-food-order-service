@@ -1,25 +1,40 @@
-name: Deploy Order Service
+name: CI - Build & Test
 
 on:
-  push:
+  pull_request:
     branches:
       - main
+      - master
 
 jobs:
-  build-and-deploy:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout do código
         uses: actions/checkout@v3
 
-      - name: Build Docker Image
-        run: |
-          docker build -t fast-food-order-service .
+      - name: Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-      - name: Push to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Instalar dependências
+        run: npm install
 
-      - name: Deploy to Kubernetes
+      - name: Rodar testes e cobertura de código
+        run: npm run test:cov
+
+      - name: Analisar código com SonarQube
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: 'https://sonarcloud.io'
+
+      - name: Verificar cobertura mínima (80%)
         run: |
-          kubectl apply -f k8s/order-service-deployment.yaml
+          COVERAGE=$(grep -oP '(?<=All files\s*\|\s*)\d+' coverage/lcov-report/index.html | tail -1)
+          if [ "$COVERAGE" -lt 80 ]; then
+            echo "Cobertura de testes abaixo de 80% ($COVERAGE%)"
+            exit 1
+          fi

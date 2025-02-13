@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID, IsArray, IsNotEmpty, IsEnum } from 'class-validator';
-import { Product } from '../../domain/entities/product.entity';
-import { Order, OrderStatus } from 'src/domain/entities/order.entity';
-import { ProductResponseDto } from './product-response.dto';
+import { Product } from '@domain/entities/product.entity';
+import { ProductResponseDto } from '@application/dto/product-response.dto';
+import { Order, OrderStatus } from '@domain/entities/order.entity';
 
 export class OrderDto {
   @ApiProperty({

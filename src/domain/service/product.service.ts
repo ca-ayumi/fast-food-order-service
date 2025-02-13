@@ -89,7 +89,7 @@ export class ProductService {
 
       return products;
     } catch (error) {
-      throw new BadRequestException(`Invalid category: ${category}`);
+      throw new NotFoundException(`No products found in category ${category}`);
     }
   }
 }
