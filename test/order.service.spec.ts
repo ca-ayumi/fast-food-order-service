@@ -56,7 +56,7 @@ describe('OrderService', () => {
     } as Order;
 
     jest.spyOn(clientRepository, 'findOne').mockResolvedValue(client);
-    jest.spyOn(productRepository, 'findByIds').mockResolvedValue(products);
+    jest.spyOn(productRepository, 'find').mockResolvedValue(products);
     jest.spyOn(orderRepository, 'save').mockResolvedValue(order);
 
     const result = await service.createOrder('client-123', ['product-123'], 100);
@@ -73,7 +73,7 @@ describe('OrderService', () => {
 
   it('should throw an error if products do not exist', async () => {
     jest.spyOn(clientRepository, 'findOne').mockResolvedValue({ id: 'client-123' } as Client);
-    jest.spyOn(productRepository, 'findByIds').mockResolvedValue([]);
+    jest.spyOn(productRepository, 'find').mockResolvedValue([]);
 
     await expect(service.createOrder('client-123', ['product-123'], 100)).rejects.toThrow(
       NotFoundException,
@@ -99,15 +99,16 @@ describe('OrderService', () => {
 
   it('should throw NotFoundException if some products are not found', async () => {
     jest.spyOn(clientRepository, 'findOne').mockResolvedValue({ id: 'client-123' } as Client);
-
-    jest.spyOn(productRepository, 'findByIds').mockResolvedValue([{ id: 'product-123' }] as Product[]);
+    jest.spyOn(productRepository, 'find').mockResolvedValue([{ id: 'product-123' }] as Product[]);
 
     await expect(service.createOrder('client-123', ['product-123', 'product-456'], 100)).rejects.toThrow(
       NotFoundException,
     );
 
     expect(clientRepository.findOne).toHaveBeenCalledWith({ where: { id: 'client-123' } });
-    expect(productRepository.findByIds).toHaveBeenCalledWith(['product-123', 'product-456']);
+    expect(productRepository.find).toHaveBeenCalledWith({
+      where: { id: In(['product-123', 'product-456']) },
+    });
   });
 
   it('should list all orders', async () => {
@@ -204,4 +205,23 @@ describe('OrderService', () => {
     await expect(service.getOrderById('invalid-order')).rejects.toThrow(NotFoundException);
   });
 
+  it('should throw BadRequestException if the order has no associated client', async () => {
+    const orderId = 'order-123';
+    const now = new Date();
+    const orderWithoutClient = {
+      id: orderId,
+      client: null,
+      product: [{ id: 'prod-uuid1' }] as Product[],
+      totalAmount: 100,
+      status: OrderStatus.RECEIVED,
+      createdAt: now,
+      updatedAt: now,
+    } as Order;
+
+    jest.spyOn(orderRepository, 'findOne').mockResolvedValue(orderWithoutClient);
+    const loggerSpy = jest.spyOn(service['logger'], 'error');
+
+    await expect(service.getOrderById(orderId)).rejects.toThrow(BadRequestException);
+    expect(loggerSpy).toHaveBeenCalledWith(`Order ${orderId} does not have an associated client`);
+  });
 });

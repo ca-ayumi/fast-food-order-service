@@ -34,7 +34,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           npx sonar-scanner \
-            -Dsonar.projectKey=nome-do-seu-projeto \
+            -Dsonar.projectKey=ca-ayumi_fast-food-order-service\
             -Dsonar.sources=. \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}

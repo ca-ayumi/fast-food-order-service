@@ -42,8 +42,9 @@ export class OrderService {
     }
     this.logger.debug(`Client found: ${JSON.stringify(client)}`);
 
-    const products = await this.productRepository.findByIds(productIds);
-    if (products.length !== productIds.length) {
+    const products = await this.productRepository.find({
+      where: { id: In(productIds) },
+    });    if (products.length !== productIds.length) {
       this.logger.error(`Products not found or mismatch: ${productIds}`);
       throw new NotFoundException('One or more products not found');
     }
