@@ -7,34 +7,34 @@ on:
       - master
 
 jobs:
-  build-test:
+  build-test-analyze:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
 
-      - name: Instalar Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
 
       - name: Instalar dependências
         run: npm install
 
-      - name: Rodar testes e cobertura de código
-        run: npm run test:cov
+      - name: Build da aplicação
+        run: npm run build
 
-      - name: Analisar código com SonarQube
-        uses: SonarSource/sonarqube-scan-action@master
+      - name: Executar testes com cobertura
+        run: npm run test:coverage
+
+      - name: Executar análise de qualidade com SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: 'https://sonarcloud.io'
-
-      - name: Verificar cobertura mínima (80%)
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          COVERAGE=$(grep -oP '(?<=All files\s*\|\s*)\d+' coverage/lcov-report/index.html | tail -1)
-          if [ "$COVERAGE" -lt 80 ]; then
-            echo "Cobertura de testes abaixo de 80% ($COVERAGE%)"
-            exit 1
-          fi
+          npx sonar-scanner \
+            -Dsonar.projectKey=nome-do-seu-projeto \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}

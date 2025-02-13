@@ -40,6 +40,7 @@ export class OrderService {
       this.logger.error(`Client not found: ${clientId}`);
       throw new NotFoundException('Client not found');
     }
+    this.logger.debug(`Client found: ${JSON.stringify(client)}`);
 
     const products = await this.productRepository.findByIds(productIds);
     if (products.length !== productIds.length) {
@@ -93,8 +94,14 @@ export class OrderService {
         where: { id: orderId },
         relations: ['client', 'product'],
       });
+
       if (!order) {
         throw new NotFoundException('Order not found');
+      }
+
+      if (!order.client) {
+        this.logger.error(`Order ${orderId} does not have an associated client`);
+        throw new BadRequestException('Order does not have a client');
       }
 
       return new OrderDto(order);

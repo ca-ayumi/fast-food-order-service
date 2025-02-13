@@ -8,8 +8,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { ClientDto } from '../../dto/client.dto';
-import { ClientService } from '../../../domain/service/client.service';
+import { ClientService } from '@domain/service/client.service';
+import { ClientDto } from '@application/dto/client.dto';
 
 @ApiTags('Clients')
 @Controller('clients')
