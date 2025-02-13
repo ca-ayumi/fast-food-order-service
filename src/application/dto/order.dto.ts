@@ -28,6 +28,12 @@ export class OrderDto {
   product: Product[];
 
   @ApiProperty({
+    description: 'Total amount of the order',
+    example: 100,
+  })
+  totalAmount: number;
+
+  @ApiProperty({
     description: 'Status of the order',
     enum: OrderStatus,
     example: 'Recebido',
@@ -37,8 +43,9 @@ export class OrderDto {
 
   constructor(order: Order) {
     this.id = order.id;
-    this.clientId = order.client.id;
+    this.clientId = order.client?.id ?? 'UNKNOWN_CLIENT_ID';
     this.product = order.product;
+    this.totalAmount = order.totalAmount;
     this.status = order.status;
   }
 }

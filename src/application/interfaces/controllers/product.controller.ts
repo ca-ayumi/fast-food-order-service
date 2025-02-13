@@ -12,13 +12,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
-import {
-  CreateProductDto,
-  ProductCategory,
-} from '../../dto/create-product.dto';
-import { UpdateProductDto } from '../../dto/update-product.dto';
-import { ProductService } from '../../../domain/service/product.service';
-import { Product } from 'src/domain/entities/product.entity';
+import { ProductService } from '@domain/service/product.service';
+import { Product } from '@domain/entities/product.entity';
+import { CreateProductDto, ProductCategory } from '@application/dto/create-product.dto';
+import { UpdateProductDto } from '@application/dto/update-product.dto';
+
 
 @ApiTags('Products')
 @Controller('products')
