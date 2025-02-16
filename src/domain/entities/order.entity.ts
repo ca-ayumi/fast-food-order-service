@@ -17,6 +17,11 @@ export enum OrderStatus {
   PREPARING = 'Em Preparação',
   READY = 'Pronto',
   FINALIZED = 'Finalizado',
+
+  RECEIVED_EN = 'RECEIVED',
+  PREPARING_EN = 'PREPARING',
+  READY_EN = 'READY',
+  FINALIZED_EN = 'FINALIZED',
 }
 
 @Entity('order')
