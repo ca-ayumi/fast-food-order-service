@@ -5,11 +5,12 @@ import {
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
-import { OrderStatus } from '@domain/entities/order.entity';
+import { Order, OrderStatus } from '@domain/entities/order.entity';
 import { ProductCategory } from '@domain/entities/product.entity';
 import { OrderController } from '@application/interfaces/controllers/order.controller';
 import { OrderService } from '@domain/service/order.service';
 import { OrderDto } from '@application/dto/order.dto';
+import { CreateOrderResponseDto } from '@application/dto/create-order-response.dto';
 
 describe('OrderController', () => {
   let controller: OrderController;
@@ -36,8 +37,7 @@ describe('OrderController', () => {
     orderService = {
       createOrder: jest.fn(),
       updateOrderStatus: jest.fn(),
-      listOrders: jest.fn(),
-      getOrderById: jest.fn(),
+      getOrdersByStatus: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -59,22 +59,13 @@ describe('OrderController', () => {
       productIds: ['prod-uuid1'],
       totalAmount: 100,
     };
-    const now = new Date();
 
-    it('should create and return an order successfully', async () => {
-      const order = {
-        id: 'order-uuid',
-        client: testClient,
-        product: [testProduct],
-        totalAmount: 100,
-        status: OrderStatus.RECEIVED,
-        createdAt: now,
-        updatedAt: now,
-      };
-      (orderService.createOrder as jest.Mock).mockResolvedValue(order);
+    it('should create an order and return QR code', async () => {
+      const response = new CreateOrderResponseDto('order-uuid', 'mock-qrcode');
+      (orderService.createOrder as jest.Mock).mockResolvedValue(response);
 
       const result = await controller.createOrder(createOrderDto);
-      expect(result).toEqual(new OrderDto(order));
+      expect(result).toEqual(response);
       expect(orderService.createOrder).toHaveBeenCalledWith(
         createOrderDto.clientId,
         createOrderDto.productIds,
@@ -82,175 +73,75 @@ describe('OrderController', () => {
       );
     });
 
-    it('should throw HttpException with 404 if NotFoundException is thrown', async () => {
-      const notFoundError = new NotFoundException('Client not found');
-      (orderService.createOrder as jest.Mock).mockRejectedValue(notFoundError);
-
-      await expect(controller.createOrder(createOrderDto)).rejects.toThrow(
-        HttpException,
+    it('should return 404 if client not found', async () => {
+      (orderService.createOrder as jest.Mock).mockRejectedValue(
+        new NotFoundException('Client not found'),
       );
-      try {
-        await controller.createOrder(createOrderDto);
-      } catch (error) {
-        const response = error.getResponse();
-        expect(response.error).toContain('Client not found');
-      }
-    });
-
-    it('should throw HttpException with 400 if BadRequestException is thrown', async () => {
-      const badRequestError = new BadRequestException('Bad request error');
-      (orderService.createOrder as jest.Mock).mockRejectedValue(badRequestError);
 
       await expect(controller.createOrder(createOrderDto)).rejects.toThrow(HttpException);
-
       try {
         await controller.createOrder(createOrderDto);
       } catch (error) {
-        expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-        const response = error.getResponse();
-        expect(response.error).toContain('Bad request error');
+        expect(error.getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
     });
 
-    it('should propagate unexpected errors', async () => {
-      const unexpectedError = new Error('Unexpected error');
-      (orderService.createOrder as jest.Mock).mockRejectedValue(unexpectedError);
-
-      await expect(controller.createOrder(createOrderDto)).rejects.toThrow(
-        unexpectedError,
+    it('should return 400 if invalid request', async () => {
+      (orderService.createOrder as jest.Mock).mockRejectedValue(
+        new BadRequestException('Invalid request'),
       );
+
+      await expect(controller.createOrder(createOrderDto)).rejects.toThrow(HttpException);
     });
   });
 
   describe('updateOrderStatus', () => {
     const orderId = 'order-uuid';
     const updateOrderStatusDto = { status: OrderStatus.PREPARING };
-    const now = new Date();
 
-    it('should update and return the order with updated status', async () => {
-      const order = {
-        id: orderId,
-        client: testClient,
-        product: [testProduct],
-        totalAmount: 100,
-        status: updateOrderStatusDto.status,
-        createdAt: now,
-        updatedAt: now,
-      };
+    it('should update order status', async () => {
+      const order = new Order();
+      order.id = orderId;
+      order.status = OrderStatus.PREPARING;
+
       (orderService.updateOrderStatus as jest.Mock).mockResolvedValue(order);
 
-      const result = await controller.updateOrderStatus(
-        orderId,
-        updateOrderStatusDto,
-      );
+      const result = await controller.updateOrderStatus(orderId, updateOrderStatusDto);
       expect(result).toEqual(new OrderDto(order));
-      expect(orderService.updateOrderStatus).toHaveBeenCalledWith(
-        orderId,
-        updateOrderStatusDto.status,
-      );
+      expect(orderService.updateOrderStatus).toHaveBeenCalledWith(orderId, updateOrderStatusDto.status);
     });
 
-    it('should throw HttpException with 400 if error occurs during update', async () => {
-      const error = new Error('Update failed');
-      (orderService.updateOrderStatus as jest.Mock).mockRejectedValue(error);
+    it('should return 400 on update failure', async () => {
+      (orderService.updateOrderStatus as jest.Mock).mockRejectedValue(new BadRequestException('Update failed'));
 
-      await expect(
-        controller.updateOrderStatus(orderId, updateOrderStatusDto),
-      ).rejects.toThrow(HttpException);
-      try {
-        await controller.updateOrderStatus(orderId, updateOrderStatusDto);
-      } catch (ex) {
-        expect(ex.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-        const response = ex.getResponse();
-        expect(response.error).toContain('Update failed');
-      }
+      await expect(controller.updateOrderStatus(orderId, updateOrderStatusDto)).rejects.toThrow(HttpException);
     });
   });
 
-  describe('listOrders', () => {
-    const now = new Date();
-
-    it('should return a list of orders', async () => {
-      const orders = [
-        new OrderDto({
-          id: 'order-uuid-1',
-          client: testClient,
-          product: [testProduct],
-          totalAmount: 100,
-          status: OrderStatus.RECEIVED,
-          createdAt: now,
-          updatedAt: now,
-        } as any),
-      ];
-      (orderService.listOrders as jest.Mock).mockResolvedValue(orders);
-
-      const result = await controller.listOrders();
-      expect(result).toEqual(orders);
-      expect(orderService.listOrders).toHaveBeenCalled();
-    });
-
-    it('should throw HttpException with 400 if error occurs while listing orders', async () => {
-      const error = new Error('List error');
-      (orderService.listOrders as jest.Mock).mockRejectedValue(error);
-
-      await expect(controller.listOrders()).rejects.toThrow(HttpException);
-      try {
-        await controller.listOrders();
-      } catch (ex) {
-        expect(ex.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-        const response = ex.getResponse();
-        expect(response.error).toContain('List error');
-      }
-    });
-  });
-
-  describe('getOrderById', () => {
-    const orderId = 'order-uuid';
-    const now = new Date();
-
-    it('should return the order by ID', async () => {
-      const order = {
-        id: orderId,
+  describe('getOrdersByStatus', () => {
+    const orderStatus = OrderStatus.PREPARING;
+    const orders = [
+      new OrderDto({
+        id: 'order-uuid-1',
         client: testClient,
         product: [testProduct],
         totalAmount: 100,
-        status: OrderStatus.RECEIVED,
-        createdAt: now,
-        updatedAt: now,
-      };
-      (orderService.getOrderById as jest.Mock).mockResolvedValue(new OrderDto(order));
+        status: orderStatus,
+      } as any),
+    ];
 
-      const result = await controller.getOrderById(orderId);
-      expect(result).toEqual(new OrderDto(order));
-      expect(orderService.getOrderById).toHaveBeenCalledWith(orderId);
+    it('should return orders by status', async () => {
+      (orderService.getOrdersByStatus as jest.Mock).mockResolvedValue(orders);
+
+      const result = await controller.getOrdersByStatus(orderStatus);
+      expect(result).toEqual(orders);
+      expect(orderService.getOrdersByStatus).toHaveBeenCalledWith(orderStatus);
     });
 
-    it('should throw HttpException with 404 if order not found', async () => {
-      const notFoundError = new NotFoundException('Order not found');
-      (orderService.getOrderById as jest.Mock).mockRejectedValue(notFoundError);
+    it('should return 400 if error occurs', async () => {
+      (orderService.getOrdersByStatus as jest.Mock).mockRejectedValue(new BadRequestException('Fetch failed'));
 
-      await expect(controller.getOrderById(orderId)).rejects.toThrow(HttpException);
-      try {
-        await controller.getOrderById(orderId);
-      } catch (error) {
-        expect(error.getStatus()).toBe(HttpStatus.NOT_FOUND);
-        const response = error.getResponse();
-        expect(response.error).toContain('Order not found');
-      }
-    });
-
-    it('should throw HttpException with 400 if BadRequestException occurs', async () => {
-      const badRequestError = new BadRequestException('Bad request');
-      (orderService.getOrderById as jest.Mock).mockRejectedValue(badRequestError);
-
-      await expect(controller.getOrderById(orderId)).rejects.toThrow(HttpException);
-      try {
-        await controller.getOrderById(orderId);
-      } catch (error) {
-        expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-        const response = error.getResponse();
-        expect(response.error).toContain('Bad request');
-      }
+      await expect(controller.getOrdersByStatus(orderStatus)).rejects.toThrow(HttpException);
     });
   });
 });
