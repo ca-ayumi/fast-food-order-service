@@ -12,7 +12,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { CreateOrderDto } from '../../dto/create-order.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OrderDto } from '../../dto/order.dto';
 import { UpdateOrderStatusDto } from '../../dto/update-order-status.dto';
 import { OrderService } from '@domain/service/order.service';

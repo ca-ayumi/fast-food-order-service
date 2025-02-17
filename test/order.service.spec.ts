@@ -1,23 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { OrderService } from '@domain/service/order.service';
 import { Product } from '@domain/entities/product.entity';
 import { Client } from '@domain/entities/client.entity';
 import { Order, OrderStatus } from '@domain/entities/order.entity';
-import { OrderDto } from '@application/dto/order.dto';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { of } from 'rxjs';
 
 describe('OrderService', () => {
   let service: OrderService;
-  let orderRepository: Repository<Order>;
-  let clientRepository: Repository<Client>;
-  let productRepository: Repository<Product>;
-  let httpService: HttpService;
-  let configService: ConfigService;
 
   const mockOrderRepository = {
     findOne: jest.fn(),
@@ -54,11 +47,6 @@ describe('OrderService', () => {
     }).compile();
 
     service = module.get<OrderService>(OrderService);
-    orderRepository = module.get<Repository<Order>>(getRepositoryToken(Order));
-    clientRepository = module.get<Repository<Client>>(getRepositoryToken(Client));
-    productRepository = module.get<Repository<Product>>(getRepositoryToken(Product));
-    httpService = module.get<HttpService>(HttpService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {

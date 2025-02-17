@@ -6,7 +6,6 @@ import { ClientController } from '@application/interfaces/controllers/client.con
 
 describe('ClientController', () => {
   let clientController: ClientController;
-  let clientService: ClientService;
 
   const mockClientService = {
     createClient: jest.fn(),
@@ -20,7 +19,6 @@ describe('ClientController', () => {
     }).compile();
 
     clientController = module.get<ClientController>(ClientController);
-    clientService = module.get<ClientService>(ClientService);
   });
 
   afterEach(() => {
