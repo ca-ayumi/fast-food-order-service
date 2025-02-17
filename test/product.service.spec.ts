@@ -9,8 +9,6 @@ import { UpdateProductDto } from '@application/dto/update-product.dto';
 
 describe('ProductService', () => {
   let service: ProductService;
-  let repository: Repository<Product>;
-
   const mockProductRepository = {
     create: jest.fn(),
     save: jest.fn(),
@@ -32,8 +30,6 @@ describe('ProductService', () => {
     }).compile();
 
     service = module.get<ProductService>(ProductService);
-    repository = module.get<Repository<Product>>(getRepositoryToken(Product));
-
     jest.clearAllMocks();
   });
 
