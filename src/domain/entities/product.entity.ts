@@ -28,5 +28,5 @@ export class Product {
   category: ProductCategory;
 
   @Column({ nullable: true })
-  imageUrl: string;
+  imageurl: string;
 }

@@ -9,8 +9,6 @@ import { UpdateProductDto } from '@application/dto/update-product.dto';
 
 describe('ProductService', () => {
   let service: ProductService;
-  let repository: Repository<Product>;
-
   const mockProductRepository = {
     create: jest.fn(),
     save: jest.fn(),
@@ -32,8 +30,6 @@ describe('ProductService', () => {
     }).compile();
 
     service = module.get<ProductService>(ProductService);
-    repository = module.get<Repository<Product>>(getRepositoryToken(Product));
-
     jest.clearAllMocks();
   });
 
@@ -46,7 +42,14 @@ describe('ProductService', () => {
       imageUrl: 'https://example.com/image.jpg',
     };
 
-    const createdProduct: Product = {
+    const createdProduct: {
+      price: number;
+      imageUrl: string;
+      name: string;
+      description: string;
+      id: string;
+      category: ProductCategory
+    } = {
       id: '123e4567-e89b-12d3-a456-426614174000',
       ...createProductDto,
     };
@@ -90,7 +93,7 @@ describe('ProductService', () => {
       description: 'Delicious burger',
       price: 12.99,
       category: ProductCategory.Lanches,
-      imageUrl: 'https://example.com/image.jpg',
+      imageurl: 'https://example.com/image.jpg',
     };
 
     mockProductRepository.findOne.mockResolvedValueOnce(existingProduct);
@@ -120,7 +123,7 @@ describe('ProductService', () => {
       description: 'Delicious burger',
       price: 12.99,
       category: ProductCategory.Lanches,
-      imageUrl: 'https://example.com/image.jpg',
+      imageurl: 'https://example.com/image.jpg',
     };
 
     mockProductRepository.findOne.mockResolvedValue(existingProduct);
@@ -146,7 +149,7 @@ describe('ProductService', () => {
         description: 'Delicious burger',
         price: 12.99,
         category: ProductCategory.Lanches,
-        imageUrl: 'https://example.com/image1.jpg',
+        imageurl: 'https://example.com/image1.jpg',
       },
       {
         id: 'uuid-2',
@@ -154,7 +157,7 @@ describe('ProductService', () => {
         description: 'Tasty cheeseburger',
         price: 14.99,
         category: ProductCategory.Lanches,
-        imageUrl: 'https://example.com/image2.jpg',
+        imageurl: 'https://example.com/image2.jpg',
       },
     ];
 

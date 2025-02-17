@@ -21,7 +21,7 @@ describe('ProductController', () => {
     description: 'A test product',
     price: 99.99,
     category: ProductCategory.Lanches,
-    imageUrl: 'http://example.com/image.jpg',
+    imageurl: 'http://example.com/image.jpg',
   };
 
   const createProductDto: CreateProductDto = {
